@@ -19,6 +19,11 @@ struct PlanetSimulator {
         if (index >= planets.size() || index < 0) return;
         std::swap(planets[index], planets[planets.size() - 1]);
         planets.pop_back();
+
+        // experimental: also pop the force
+        if (index >= forces.size() || forces.size() != planets.size()) return;
+        std::swap(forces[index], forces[forces.size() - 1]);
+        forces.pop_back();
     }
 
     void removeStar(int index) {
@@ -123,10 +128,19 @@ struct PlanetSimulator {
         }
     }
 
+    void removeOutOfBounds() {
+        for (int i = planets.size(); i >= 0; i--) {
+            auto pos = planets[i].x;
+            if (abs(pos.first) > BOUNDARY || abs(pos.second) > BOUNDARY) removePlanet(i);
+        }
+    }
+
     // Perform one full iteration: compute forces and update. There is no guarantee that the forces array after running this represents the computed forces before running.
-    inline void iterate(PSUtil::numeric delta) {
+    inline void iterate(PSUtil::numeric delta, bool removeOOB = true) {
         computeForces();
         update(delta);
+
+        if (removeOOB) removeOutOfBounds();
     }
 
     inline std::string sprintf() {

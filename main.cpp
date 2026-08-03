@@ -6,46 +6,10 @@ using namespace std;
 #include "star.h"
 #include "simulator.h"
 
+#include "tests.cpp"
+
 int main() {
-    cout << "G = " << PSUtil::G << endl;
-
-    // 1. Test basics (planet and simulator information storage and display)
-
-    Planet p;
-    cout << p.to_string() << endl;
-
-    Planet p1{100000, {0, 0}};
-    Planet p2{100000, {1, 0}};
-
-    cout << PSUtil::gravity(100000, 100000, 1) << endl;
-
-    // 2. Test force computations
-
-    PlanetSimulator s;
-    s.planets.push_back(p1);
-    s.planets.push_back(p2);
-
-    s.computeForces();
-    cout << PSUtil::disp(s.forces) << endl;
-
-    PlanetSimulator s2;
-    s2.stars.push_back(Star{1e+10, {0, 0}});
-    s2.planets.push_back(p2);
-
-    s2.computeForces();
-    cout << PSUtil::disp(s2.forces) << endl;
-
-    // 3. Test a simple star system (one star and one planet, computed for circular orbit.)
-
-    auto velocity = PSUtil::circular(s2.stars[0].mass, PSUtil::distance(s2.planets[0].x, s2.stars[0].x));
-    cout << velocity << endl;
-    s2.planets[0].v = {0, velocity};
-
-    for (int i = 0; i < 1000; i++) {
-        cout << "ITER " << (i + 1) << ":";
-        s2.iterate(0.01);
-        cout << s2.planets[0].to_string() << ":" << PSUtil::length(s2.planets[0].x) << endl;
-    }
+    runTests();
 
     return 0;
 }
