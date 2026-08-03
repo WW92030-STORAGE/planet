@@ -9,6 +9,8 @@ using namespace std;
 int main() {
     cout << "G = " << PSUtil::G << endl;
 
+    // 1. Test basics (planet and simulator information storage and display)
+
     Planet p;
     cout << p.to_string() << endl;
 
@@ -16,6 +18,8 @@ int main() {
     Planet p2{100000, {1, 0}};
 
     cout << PSUtil::gravity(100000, 100000, 1) << endl;
+
+    // 2. Test force computations
 
     PlanetSimulator s;
     s.planets.push_back(p1);
@@ -30,6 +34,8 @@ int main() {
 
     s2.computeForces();
     cout << PSUtil::disp(s2.forces) << endl;
+
+    // 3. Test a simple star system (one star and one planet, computed for circular orbit.)
 
     auto velocity = PSUtil::circular(s2.stars[0].mass, PSUtil::distance(s2.planets[0].x, s2.stars[0].x));
     cout << velocity << endl;
