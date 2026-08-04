@@ -9,21 +9,16 @@
 #include <string>
 
 struct PlanetSimulator {
-    std::vector<Planet> planets;
-    std::vector<PSUtil::point> forces;
-    std::vector<Star> stars;
-
+    PSUtil::numeric grav = PSUtil::G;
     PSUtil::numeric BOUNDARY = 1024;
+    
+    std::vector<Planet> planets;
+    std::vector<Star> stars;
 
     void removePlanet(int index) {
         if (index >= planets.size() || index < 0) return;
         std::swap(planets[index], planets[planets.size() - 1]);
         planets.pop_back();
-
-        // experimental: also pop the force
-        if (index >= forces.size() || forces.size() != planets.size()) return;
-        std::swap(forces[index], forces[forces.size() - 1]);
-        forces.pop_back();
     }
 
     void removeStar(int index) {
@@ -32,14 +27,12 @@ struct PlanetSimulator {
         stars.pop_back();
     }
 
+    // actually computes accelerations
     void computeForces() {
         int P = planets.size();
         int S = stars.size();
 
-        // zero out
-        while (forces.size() > P) forces.pop_back();
-        for (int i = 0; i < forces.size(); i++) forces[i] = {0, 0};
-        while (forces.size() < P) forces.push_back({0, 0});
+        for (int p = 0; p < P; p++) planets[p].a = {0, 0};
 
         // compute. right now it's O(P * P + P * S)
 
@@ -50,13 +43,13 @@ struct PlanetSimulator {
                 Planet planet = planets[p];
                 Star star = stars[s];
 
-                PSUtil::point disp = PSUtil::sub(star.x, planet.x);
-                PSUtil::numeric len = PSUtil::length(disp);
+                PSUtil::point displacement = PSUtil::sub(star.x, planet.x);
+                PSUtil::numeric len = PSUtil::length(displacement);
                 if (PSUtil::zero(len)) continue;
-                PSUtil::numeric force_magnitude = PSUtil::gravity(planet.mass, star.mass, len);
+                PSUtil::numeric force_magnitude = PSUtil::gravity(star.mass, len, grav);
 
                 // unit vector + add
-                forces[p] = PSUtil::add(forces[p], PSUtil::scale(disp, force_magnitude / len));
+                planets[p].a = PSUtil::axpy(force_magnitude / len, displacement, planets[p].a);
             }
         }
 
@@ -68,37 +61,29 @@ struct PlanetSimulator {
                 Planet planet = planets[p];
                 Planet star = planets[s];
 
-                PSUtil::point disp = PSUtil::sub(star.x, planet.x);
-                PSUtil::numeric len = PSUtil::length(disp);
+                PSUtil::point displacement = PSUtil::sub(star.x, planet.x);
+                PSUtil::numeric len = PSUtil::length(displacement);
                 if (PSUtil::zero(len)) continue;
-                PSUtil::numeric force_magnitude = PSUtil::gravity(planet.mass, star.mass, len);
+                PSUtil::numeric force_magnitude = PSUtil::gravity(star.mass, len, grav);
 
                 // unit vector + add
-                forces[p] = PSUtil::add(forces[p], PSUtil::scale(disp, force_magnitude / len));
-            }
-        }
-    }
+                planets[p].a = PSUtil::axpy(force_magnitude / len, displacement, planets[p].a);
 
-    // Store the correct accelerations. Assumes you've computed forces beforehand.
-    void updateAccelerations() {
-        int P = planets.size();
-        for (int p = 0; p < P && p < forces.size(); p++) {
-            if (!PSUtil::zero(planets[p].mass)) planets[p].a = PSUtil::scale(forces[p], 1.0 / planets[p].mass);
+                // std::cout << p << " " << s << ":" << force_magnitude << " | " << PSUtil::to_string(displacement) << " | " << PSUtil::to_string(forces[p]) << "\n";
+            }
         }
     }
 
     // assumes you've computed forces beforehand. otherwise use the iterate method below. There is no guarantee that the forces array is preserved after this.
     void update(PSUtil::numeric delta) {
-        updateAccelerations();
-
         updateLeapfrog(delta);
     }
 
     void updateEuler(PSUtil::numeric delta) {
         int P = planets.size();
         for (int p = 0; p < P; p++) {
-            planets[p].v = PSUtil::add(planets[p].v, PSUtil::scale(planets[p].a, delta));
-            planets[p].x = PSUtil::add(planets[p].x, PSUtil::scale(planets[p].v, delta));
+            planets[p].v = PSUtil::axpy(delta, planets[p].a, planets[p].v);
+            planets[p].x = PSUtil::axpy(delta, planets[p].v, planets[p].x);
         }
     }
 
@@ -109,7 +94,7 @@ struct PlanetSimulator {
         for (int p = 0; p < P; p++) {
             auto displacement = PSUtil::add(PSUtil::scale(planets[p].v, delta), PSUtil::scale(planets[p].a, hd2));
             planets[p].x = PSUtil::add(planets[p].x, displacement);
-            planets[p].v = PSUtil::add(planets[p].v, PSUtil::scale(planets[p].a, delta));
+            planets[p].v = PSUtil::axpy(delta, planets[p].a, planets[p].v);
         }
     }
 
@@ -118,13 +103,12 @@ struct PlanetSimulator {
         auto hd = delta * 0.5;
         int P = planets.size();
         for (int p = 0; p < P; p++) {
-            planets[p].v = PSUtil::add(planets[p].v, PSUtil::scale(planets[p].a, hd));
-            planets[p].x = PSUtil::add(planets[p].x, PSUtil::scale(planets[p].v, delta));
+            planets[p].v = PSUtil::axpy(hd, planets[p].a, planets[p].v);
+            planets[p].x = PSUtil::axpy(delta, planets[p].v, planets[p].x);
         }
         computeForces();
-        updateAccelerations();
         for (int p = 0; p < P; p++) {
-            planets[p].v = PSUtil::add(planets[p].v, PSUtil::scale(planets[p].a, hd));
+            planets[p].v = PSUtil::axpy(hd, planets[p].a, planets[p].v);
         }
     }
 
@@ -149,8 +133,14 @@ struct PlanetSimulator {
         for (auto p : planets) res += p.to_string() + "\n";
         res += "Stars:\n";
         for (auto s : stars) res += s.to_string() + "\n";
+        res += "G=" + std::to_string(grav) + "\n";
         return res + "/PlanetSimulator";
+    }
 
+    std::vector<PSUtil::point> accelerations() {
+        std::vector<PSUtil::point> res(planets.size());
+        for (int p = 0; p < planets.size(); p++) res[p] = planets[p].a;
+        return res;
     }
 };
 

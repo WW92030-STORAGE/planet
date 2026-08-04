@@ -1,15 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "util.h"
-#include "planet.h"
-#include "star.h"
-#include "simulator.h"
+#include "src/util.h"
+#include "src/planet.h"
+#include "src/star.h"
+#include "src/simulator.h"
 
-#include "tests.cpp"
+#include "tests.h"
 
 int main() {
-    runTests();
+    runTests(true);
 
     return 0;
 }

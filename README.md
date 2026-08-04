@@ -9,5 +9,8 @@ Lightweight planetary orbit simulator. Supports both static and gravity-influenc
 
 # information
 
-Three integrators are provided: Forward Euler, Slightly Better Forward Euler, and Leapfrog. By default we use Leapfrog.
-For a universe consisting of a star and a planet on a circular orbit, Forward Euler leaks energy, SBFE gains energy, and Leapfrog has varying but otherwise consistent energy.
+Three integrators are provided: Forward Euler, Slightly Better Forward Euler, and Leapfrog. By default we use Leapfrog (since it is the most precise). Be wary of energy instability due to precision errors.
+
+# miscellaneous
+
+https://www.math.uni-bielefeld.de/~rehmann/ECM/cdrom/3ecm/pdfs/pant3/simo.pdf

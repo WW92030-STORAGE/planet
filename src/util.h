@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <algorithm>
+#include <cmath>
 
 namespace PSUtil {
 
@@ -34,11 +35,10 @@ inline bool zero(numeric n) {
     return abs(n) < EPSILON;
 }
 
-// COMPUTE GRAVITATIONAL FORCE
+// COMPUTE GRAVITATIONAL ACCELERATION
 
-inline numeric gravity(numeric m1, numeric m2, numeric r) {
-    if (abs(m1) < abs(m2)) std::swap(m1, m2);
-    return ((G * m1) / (r * r)) * m2;
+inline numeric gravity(numeric m2, numeric r, numeric grav = G) {
+    return ((grav * m2) / (r * r));
 }
 
 // OPERATIONS ON POINTS
@@ -78,6 +78,22 @@ inline numeric distance(point a, point b) {
     return length(sub(a, b));
 }
 
+inline numeric angle(point p) {
+    return atan2(p.second, p.first);
+}
+
+inline point rect2polar(point p) {
+    return {length(p), angle(p)};
+}
+
+inline point polar2rect(point p) {
+    return {p.first * cos(p.second), p.first * sin(p.second)};
+}
+
+inline point axpy(numeric a, point x, point y) {
+    return {a * x.first + y.first, a * x.second + y.second};
+}
+
 // PRINT STUFF AS STRING
 
 std::string to_string(point p) {
@@ -96,7 +112,7 @@ inline std::string disp(std::vector<point> v) {
 // UTILITY FUNCTIONS
 
 // Compute tangential velocity magnitude for a circular orbit
-constexpr PSUtil::numeric circular(PSUtil::numeric mstar, PSUtil::numeric r) {
+constexpr PSUtil::numeric circular(PSUtil::numeric mstar, PSUtil::numeric r, PSUtil::numeric grav = PSUtil::G) {
     /*
         
     a = v^2 / r
@@ -107,7 +123,7 @@ constexpr PSUtil::numeric circular(PSUtil::numeric mstar, PSUtil::numeric r) {
 
     */
 
-    return sqrt(G * mstar / r);
+    return sqrt(grav * mstar / r);
 }
 
 }
