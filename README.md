@@ -13,4 +13,4 @@ Three integrators are provided: Forward Euler, Slightly Better Forward Euler, an
 
 # miscellaneous
 
-https://www.math.uni-bielefeld.de/~rehmann/ECM/cdrom/3ecm/pdfs/pant3/simo.pdf
+- Source for the Moore preset data - https://astronomy.stackexchange.com/questions/50297/initial-state-for-a-3-body-problem-to-create-figure-8-restricted-to-2d
