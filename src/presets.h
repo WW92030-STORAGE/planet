@@ -11,11 +11,15 @@
 /*
 
 Each of these presets should be invariant under the value of G.
+Most of these have relevant computations in comments.
 
 */
 
-// Star and planet
-PlanetSimulator singleplanet(PSUtil::numeric grav = PSUtil::G, PSUtil::numeric R = 1, PSUtil::numeric mp = 1, PSUtil::numeric ms = 16) {
+#define GRAV_PARAM PSUtil::numeric grav = PSUtil::G
+
+// Star and planet in a circular orbit. 
+PlanetSimulator singleplanet_circular(GRAV_PARAM, PSUtil::numeric R = 1, PSUtil::numeric mp = 1, PSUtil::numeric ms = 16) {
+    // In this simplest case, we use the centripetal velocity solver in PSUtil to compute the velocity.
     if (R <= 0) R = 1;
     PlanetSimulator sim{grav};
     sim.stars.push_back(Star{ms, {0, 0}});
@@ -24,8 +28,83 @@ PlanetSimulator singleplanet(PSUtil::numeric grav = PSUtil::G, PSUtil::numeric R
     return sim;
 }
 
+// Star and planet. The planet orbits around in an elliptical manner.
+PlanetSimulator singleplanet(GRAV_PARAM, PSUtil::numeric a = 1, PSUtil::numeric b = 0.5, PSUtil::numeric mp = 1, PSUtil::numeric ms = 16) {
+    if (b > a) std::swap(a, b);
+    PSUtil::numeric c = sqrt(a * a - b * b);
+
+    PlanetSimulator sim{grav};
+    sim.planets.push_back(Planet{mp, {a - c, 0}});
+    sim.stars.push_back(Star{ms, {0, 0}});
+
+    /*
+    
+    What velocity do we need? We use the VIS-VIVA EQUATION:
+
+    v^2 = GM[2/r - 1/a]
+    where r is the distance between the bodies and a is the semimajor axis and M = ms
+    
+    */
+
+    PSUtil::numeric visviva = (grav * ms) * (2.0 / (a - c) - 1.0 / a);
+    sim.planets[0].v = {0, sqrt(visviva)};
+
+    return sim;
+}
+
+
+// Binary star system (actually a binary planet system) with two identical masses and orbiting on ellipses of 1/2major axis (axis) and 1/2minor axis (scale)
+PlanetSimulator binary_equal(GRAV_PARAM, PSUtil::numeric a = 1, PSUtil::numeric b = 1, PSUtil::numeric mass = 1) {
+    if (b > a) std::swap(a, b);
+    PSUtil::numeric c = sqrt(a * a - b * b);
+
+    PlanetSimulator sim{grav};
+    sim.planets.push_back(Planet{mass, {a - c, 0}});
+    sim.planets.push_back(Planet{mass, {c - a, 0}});
+
+    /*
+    
+    Alright, let's get this party started. To solve this we will use a thing we call REDUCED MASS. 
+    REDUCED MASS performs a coordinate shift from absolute coordinates to relative (irrotational) coordinates around one of the masses in the binary system:
+
+    X --> X'
+    m1' = m1 + m2
+    m2' = m1 * m2 / m1'
+    x1' = (0, 0)
+    x2' = x2 - x1 <--- This is the relative position of mass 2 with respect to mass 1
+
+    Now we're in the general one-star elliptical system. The VIS-VIVA equation is used here:
+
+    v2' = sqrt[G * m1' * [2/r - 1/a']]
+    what is r? r = (a' - c')
+
+    But remember that v2' is relative velocity. At the perihelions, where the planets are closest to the common barycenter, their tangential velocities are opposing each other.
+    Thus v2 = -v1 = 0.5v2'.
+
+    BUT WAIT!!! It's not over yet!
+
+    Remember that everything we just did was in terms of the relative orbit. To ascertain values from the absolute orbits we must do some scaling.
+
+    At the perihelion, the two planets are 2 * (a - c) apart. At the aphelion, thte planets are 2 * (a + c) apart.
+    Thus a' = 2a, the sum of these values.
+
+    Similarly, when the planets are at the minor axis points, when planet 2 is on a minor axis point relative to planet 1, the vertical separation is 2b. Thus b' = 2b.
+    Thus c' = sqrt(a'^2 - b'^2) = 2c.
+    
+    */
+    
+    PSUtil::numeric aprime = 2 * a;
+    PSUtil::numeric bprime = 2 * b;
+    PSUtil::numeric cprime = sqrt(aprime * aprime - bprime * bprime);
+    PSUtil::numeric vprime = 0.5 * sqrt(2 * grav * mass * (2.0 / (aprime - cprime) - 1.0 / aprime));
+    sim.planets[0].v = {0, vprime};
+    sim.planets[1].v = {0, -vprime};
+
+    return sim;
+}
+
 // Circle of planets
-PlanetSimulator ring(PSUtil::numeric grav = PSUtil::G, int N = 3, PSUtil::numeric R = 1, PSUtil::numeric mass = -1) {
+PlanetSimulator ring(GRAV_PARAM, int N = 3, PSUtil::numeric R = 1, PSUtil::numeric mass = -1) {
     if (N <= 0) N = 3;
     if (mass <= 0) mass = 1.0 / grav;
 
@@ -76,8 +155,8 @@ PlanetSimulator ring(PSUtil::numeric grav = PSUtil::G, int N = 3, PSUtil::numeri
     return ps;
 }
 
-// Moore figure 8 solution
-PlanetSimulator moore(PSUtil::numeric grav = PSUtil::G, PSUtil::numeric scale = 1) {
+// Moore figure 8 solution. See the README for the initial state.
+PlanetSimulator moore(GRAV_PARAM, PSUtil::numeric scale = 1) {
     auto cubed = scale * scale * scale; // The force (acceleration) and distances scale up by scale. This contributes scale^3 to the mass.
     Planet p0{cubed / grav, {0.9700436 * scale, -0.24308753 * scale}, {0.466203685 * scale, 0.43236573 * scale}};
     Planet p1{cubed / grav, PSUtil::scale(p0.x, -1), p0.v};

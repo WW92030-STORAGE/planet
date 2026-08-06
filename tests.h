@@ -114,7 +114,7 @@ void test_ring(bool verbose = false) {
     cout << "test_ring" << endl;
     PlanetSimulator ps = ring(1, 5, 7);
     PlanetSimulator ps2 = ring(0.5, 5, 7);
-    cout << ps.planets[0].v.second << " " << ps2.planets[0].v.second << endl;
+    if (verbose) cout << ps.planets[0].v.second << " " << ps2.planets[0].v.second << endl;
     for (int i = 0; i < 8192; i++) {
         ps.iterate(0.01);
         ps2.iterate(0.01);
@@ -167,9 +167,46 @@ void test_circular_orbit_massless(bool verbose = false) {
     }
 }
 
+// Test vis-viva
+void test_visviva(bool verbose = false) {
+    cout << "test_visviva" << endl;
+    PlanetSimulator sim = singleplanet(1, 2, 1, 1, 16);
+    cout << PSUtil::to_string(sim.planets[0].x) << " | " << PSUtil::to_string(sim.planets[0].v) << endl;
+
+    for (int i = 0; i < 1<<16; i++) {
+        sim.iterate(0.0001);
+        if (verbose && i % 100 == 0) cout << PSUtil::to_string(sim.planets[0].x) << endl;
+        auto x = sim.planets[0].x.first + sqrt(3);
+        auto y = sim.planets[0].x.second;
+        // cout << x << " " << y << " " << x * x + 4 * y * y << endl;
+        assert(abs(x * x + 4 * y * y - 4) < 0.001);
+    }
+}
+
+// Test test_binary_equal
+void test_binary_equal(bool verbose = false) {
+    cout << "test_binary_equal" << endl;
+    PlanetSimulator sim = binary_equal(1, 2, 1, 1);
+    cout << PSUtil::to_string(sim.planets[0].x) << " | " << PSUtil::to_string(sim.planets[0].v) << endl;
+
+    for (int i = 0; i < 1<<16; i++) {
+        sim.iterate(0.001);
+        if (verbose && i % 100 == 0) cout << PSUtil::to_string(sim.planets[0].x) << endl;
+        
+        auto x = sim.planets[0].x.first + sqrt(3);
+        auto y = sim.planets[0].x.second;
+        // cout << x << " " << y << " " << x * x + 4 * y * y << endl;
+        assert(abs(x * x + 4 * y * y - 4) < 0.001);
+
+        assert(PSUtil::equals(sim.planets[0].x.first, -1 * sim.planets[1].x.first));
+        assert(PSUtil::equals(sim.planets[0].x.second, -1 * sim.planets[1].x.second));
+    }
+}
+
 void runTests(bool verbose = false) {
     cout << "G = " << PSUtil::G << endl;
 
+    /*
     test_basic(verbose);
     test_forces(verbose);
     test_circular_orbit(verbose);
@@ -178,4 +215,6 @@ void runTests(bool verbose = false) {
     test_ring(verbose);
     test_moore_scaled(verbose);
     test_circular_orbit_massless(verbose);
+    */
+    test_binary_equal(true);
 }

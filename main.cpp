@@ -9,7 +9,7 @@ using namespace std;
 #include "tests.h"
 
 int main() {
-    runTests(true);
+    runTests(false);
 
     return 0;
 }
