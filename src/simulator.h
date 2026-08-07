@@ -131,14 +131,14 @@ struct PlanetSimulator {
 
     // Move the system by some vector
     void translate(PSUtil::point disp) {
-        for (auto p : planets) p.translate(disp);
-        for (auto s : stars) s.translate(disp); 
+        for (int p = 0; p < planets.size(); p++) planets[p].translate(disp);
+        for (int s = 0; s < stars.size(); s++) stars[s].translate(disp);
     }
 
     // Rotate around the origin
     void rotate(PSUtil::numeric theta) {
-        for (auto p : planets) p.rotate(theta);
-        for (auto s : stars) s.rotate(theta); 
+        for (int p = 0; p < planets.size(); p++) planets[p].rotate(theta);
+        for (int s = 0; s < stars.size(); s++) stars[s].rotate(theta);
     }
 
     // Add the bodies of another system to this one. Be aware this is simply copying over the bodies from the other system to this one, and parameters (e.g. grav, boundary) will use this->... .
