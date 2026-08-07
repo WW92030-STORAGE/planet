@@ -12,6 +12,16 @@ struct Planet {
     PSUtil::point a = {0, 0};
     std::string name = "Planet";
 
+    void translate(PSUtil::point p) {
+        x = {x.first + p.first, x.second + p.second};
+    }
+
+    void rotate(PSUtil::numeric theta) {
+        x = PSUtil::rotate(x, theta);
+        v = PSUtil::rotate(v, theta);
+        a = PSUtil::rotate(a, theta);
+    }
+
     bool operator<(const Planet& other) {
         if (!PSUtil::equals(mass, other.mass)) return mass < other.mass;
         if (!PSUtil::equals(x, other.x)) return x < other.x;

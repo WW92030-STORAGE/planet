@@ -205,8 +205,7 @@ void test_binary_equal(bool verbose = false) {
 
 void runTests(bool verbose = false) {
     cout << "G = " << PSUtil::G << endl;
-
-    /*
+    
     test_basic(verbose);
     test_forces(verbose);
     test_circular_orbit(verbose);
@@ -215,6 +214,5 @@ void runTests(bool verbose = false) {
     test_ring(verbose);
     test_moore_scaled(verbose);
     test_circular_orbit_massless(verbose);
-    */
-    test_binary_equal(true);
+    test_binary_equal(false);
 }

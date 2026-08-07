@@ -40,7 +40,7 @@ PlanetSimulator singleplanet(GRAV_PARAM, PSUtil::numeric a = 1, PSUtil::numeric 
     /*
 
     E = U + K = const (since gravity, like other inverse square fields, is conservative)
-    U + K = -GM(mp)/r + 0.5(mp)v^2 = const
+    U + K = -GM(mp)/r + 0.5(mp)v^2 = const (where G is the gravitational constant.)
 
     where r is the distance between the bodies and a is the semimajor axis and M = ms. Dividing by (mp) on both sides:
 

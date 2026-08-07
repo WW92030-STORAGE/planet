@@ -11,6 +11,14 @@ struct Star {
     PSUtil::point x = {0, 0};
     std::string name = "Star";
 
+    void translate(PSUtil::point p) {
+        x = {x.first + p.first, x.second + p.second};
+    }
+
+    void rotate(PSUtil::numeric theta) {
+        x = PSUtil::rotate(x, theta);
+    }
+
     bool operator<(const Star& other) {
         if (!PSUtil::equals(mass, other.mass)) return mass < other.mass;
         if (!PSUtil::equals(x, other.x)) return x < other.x;

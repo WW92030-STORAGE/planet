@@ -94,6 +94,12 @@ inline point axpy(numeric a, point x, point y) {
     return {a * x.first + y.first, a * x.second + y.second};
 }
 
+inline point rotate(point p, numeric theta) {
+    auto c = cos(theta);
+    auto s = sin(theta);
+    return {c * p.first - s * p.second, s * p.first + c * p.second};
+}
+
 // PRINT STUFF AS STRING
 
 std::string to_string(point p) {
