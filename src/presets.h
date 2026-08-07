@@ -38,11 +38,33 @@ PlanetSimulator singleplanet(GRAV_PARAM, PSUtil::numeric a = 1, PSUtil::numeric 
     sim.stars.push_back(Star{ms, {0, 0}});
 
     /*
+
+    E = U + K = const (since gravity, like other inverse square fields, is conservative)
+    U + K = -GM(mp)/r + 0.5(mp)v^2 = const
+
+    where r is the distance between the bodies and a is the semimajor axis and M = ms. Dividing by (mp) on both sides:
+
+    -GM/r + 0.5v^2 = const. Analyzing at two points: the perihelion and the aphelion:
+    -GM/r + 0.5v^2 = -GM/r' + 0.5v'^2 (where r, v are taken at perihelion and r', v' at the aphelion. Naturally, r' > r.)
+    0.5v^2 - 0.5v'^2 = GM/r - GM/r'
+    v^2 - v'^2 = 2GM[1/r - 1/r']
+
+    Conservation of angular momentum: rv = r'v'. Thus v' = rv/r'.
+    v^2 - [rv/r']^2 = v^2[1 - [r/r']^2] = v^2[r'^2 - r^2] / [r']^2
+    and 2GM[1/r - 1/r'] = 2GM[r' - r] / [r * r']
+
+    Thus v^2[r'^2 - r^2] / r'^2 = 2GM[r' - r] / [r * r']
+    v^2[r' + r][r' - r] / r'^2 = 2GM[r' - r] / [r * r']
+    v^2[r' + r] / r' = 2GM / r. Since 2a = r' + r we obtain:
+    v^2[2a/r'] = 2GM/r
+    v^2 = 2GMr' / 2ar. Since r' = 2a - r:
+    v^2 = 2GM[2a - r] / 2ar = 2GM[1/r - 1/2a] = GM[2/r - 1/a]
     
-    What velocity do we need? We use the VIS-VIVA EQUATION:
+    The end result is the VIS-VIVA EQUATION which gives us the perihelion velocity:
 
     v^2 = GM[2/r - 1/a]
-    where r is the distance between the bodies and a is the semimajor axis and M = ms
+    
+    *We derived the result for ellipses, where 1/a > 0. 1/a = 0 in parabolas and 1/a < 0 in hyperbolas.
     
     */
 
